@@ -1,0 +1,115 @@
+DDL
+
+CREATE DATABASE rentaldatareal;
+USE rentaldatareal;
+
+CREATE TABLE `company_branch` (
+  `Branch_id` varchar(10) NOT NULL,
+  `Alamat` varchar(100) DEFAULT NULL,
+  `No_telp` varchar(15) DEFAULT NULL,
+  `Jumlah_pegawai` int(11) DEFAULT NULL,
+  PRIMARY KEY (`Branch_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `customer` (
+  `Customer_id` varchar(12) NOT NULL,
+  `Nama` varchar(50) DEFAULT NULL,
+  `Keanggotaan` enum('Yes','No') DEFAULT NULL,
+  `Email` varchar(50) DEFAULT NULL,
+  `Total_sewa` int(11) DEFAULT 0,
+  `Tanggal_lahir` date DEFAULT NULL,
+  `Alamat` varchar(100) DEFAULT NULL,
+  `Jenis_kelamin` enum('Pria','Wanita') DEFAULT NULL,
+  PRIMARY KEY (`Customer_id`),
+  UNIQUE KEY `Email` (`Email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `employee` (
+  `Employee_id` varchar(12) NOT NULL,
+  `Nama` varchar(50) DEFAULT NULL,
+  `NIK` varchar(16) DEFAULT NULL,
+  `Email` varchar(50) DEFAULT NULL,
+  `Jabatan` varchar(30) DEFAULT NULL,
+  `Tanggal_lahir` date DEFAULT NULL,
+  `Jenis_kelamin` enum('Pria','Wanita') DEFAULT NULL,
+  `Alamat` varchar(100) DEFAULT NULL,
+  `Branch_id` varchar(10) DEFAULT NULL,
+  PRIMARY KEY (`Employee_id`),
+  UNIQUE KEY `NIK` (`NIK`),
+  UNIQUE KEY `Email` (`Email`),
+  KEY `Branch_id` (`Branch_id`),
+  CONSTRAINT `employee_ibfk_1` FOREIGN KEY (`Branch_id`) REFERENCES `company_branch` (`Branch_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `vehicle` (
+  `Vehicle_id` varchar(15) NOT NULL,
+  `Branch_id` varchar(10) DEFAULT NULL,
+  `Model` varchar(30) DEFAULT NULL,
+  `Tahun_Produksi` int(11) DEFAULT NULL,
+  `Warna` varchar(20) DEFAULT NULL,
+  `Harga` decimal(10,2) DEFAULT NULL,
+  `Merk` varchar(20) DEFAULT NULL,
+  `Jenis_kendaraan` enum('Mobil','Motor','Sepeda Listrik') DEFAULT NULL,
+  `Kapasitas_kendaraan` int(11) DEFAULT NULL,
+  `Status_kendaraan` enum('Available','Non-Available','Maintenance') DEFAULT NULL,
+  `no_polisi` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`Vehicle_id`),
+  KEY `Branch_id` (`Branch_id`),
+  CONSTRAINT `vehicle_ibfk_1` FOREIGN KEY (`Branch_id`) REFERENCES `company_branch` (`Branch_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `rent` (
+  `Rent_id` varchar(10) NOT NULL,
+  `Tanggal_Pesan` date DEFAULT NULL,
+  `Tanggal_Mulai_Sewa` date DEFAULT NULL,
+  `Tanggal_Akhir_Sewa` date DEFAULT NULL,
+  `Tanggal_Pengembalian` date DEFAULT NULL,
+  `Customer_id` varchar(12) DEFAULT NULL,
+  `Vehicle_id` varchar(15) DEFAULT NULL,
+  `Employee_id` varchar(10) DEFAULT NULL,
+  PRIMARY KEY (`Rent_id`),
+  KEY `Customer_id` (`Customer_id`),
+  KEY `Vehicle_id` (`Vehicle_id`),
+  CONSTRAINT `rent_ibfk_1` FOREIGN KEY (`Customer_id`) REFERENCES `customer` (`Customer_id`),
+  CONSTRAINT `rent_ibfk_2` FOREIGN KEY (`Vehicle_id`) REFERENCES `vehicle` (`Vehicle_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `payment` (
+  `Payment_id` varchar(10) NOT NULL,
+  `Status_Pengembalian` enum('Late','Ontime','Not_Returned_Yet') DEFAULT NULL,
+  `Tanggal_Bayar` date DEFAULT NULL,
+  `Metode_Bayar` varchar(20) DEFAULT NULL,
+  `Status_Pembayaran` enum('Not_Paid','Paid','Canceled','Pending') DEFAULT NULL,
+  `Total_Bayar` decimal(12,2) DEFAULT NULL,
+  `Rent_id` varchar(10) DEFAULT NULL,
+  PRIMARY KEY (`Payment_id`),
+  KEY `Rent_id` (`Rent_id`),
+  CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`Rent_id`) REFERENCES `rent` (`Rent_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `fine` (
+  `Fine_id` varchar(10) NOT NULL,
+  `Jumlah_Denda` decimal(10,2) DEFAULT NULL,
+  `Deskripsi_Kerusakan` text DEFAULT NULL,
+  `Keterlambatan_Hari` int(11) DEFAULT NULL,
+  `Vehicle_id` varchar(15) DEFAULT NULL,
+  `Payment_id` varchar(10) DEFAULT NULL,
+  `tipe_kerusakan` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`Fine_id`),
+  KEY `Vehicle_id` (`Vehicle_id`),
+  KEY `Payment_id` (`Payment_id`),
+  CONSTRAINT `fine_ibfk_1` FOREIGN KEY (`Vehicle_id`) REFERENCES `vehicle` (`Vehicle_id`),
+  CONSTRAINT `fine_ibfk_2` FOREIGN KEY (`Payment_id`) REFERENCES `payment` (`Payment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `tracking` (
+  `Tracking_ID` varchar(10) NOT NULL,
+  `Koordinat` varchar(50) DEFAULT NULL,
+  `Waktu` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `Vehicle_id` varchar(15) DEFAULT NULL,
+  `Status_Perjalanan` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`Tracking_ID`),
+  KEY `Vehicle_id` (`Vehicle_id`),
+  CONSTRAINT `tracking_ibfk_1` FOREIGN KEY (`Vehicle_id`) REFERENCES `vehicle` (`Vehicle_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
